@@ -8,8 +8,9 @@ use sdl2::{
 use freetype as ft;
 use texture_atlas::TextureAtlas;
 
-const FONT_PATH: &str =
-    "/nix/store/rqs3nbgwi83a1bv3swxy4jjbg5aibfyc-iosevka-15.6.3/share/fonts/truetype/iosevka-regular.ttf";
+const FONT_PATH: [&str; 2] = [
+     "/nix/store/rqs3nbgwi83a1bv3swxy4jjbg5aibfyc-iosevka-15.6.3/share/fonts/truetype/iosevka-regular.ttf",    "/usr/share/fonts/TTF/iosevka-regular.ttc",
+];
 
 const TEXT: &str = include_str!("../small.txt");
 
@@ -28,7 +29,19 @@ fn main() {
     canvas.clear();
 
     let lib = ft::Library::init().unwrap();
-    let face = lib.new_face(FONT_PATH, 0).unwrap();
+
+    let mut face = None;
+    for f in FONT_PATH {
+        if let Ok(face_) = lib.new_face(f, 0) {
+            face = Some(face_);
+            break;
+        }
+    }
+    if face.is_none() {
+        println!("E: Can't load fonts");
+        return;
+    }
+    let face = face.unwrap();
 
     let texture_creator = canvas.texture_creator();
     let mut texture_atlas = TextureAtlas::new(&texture_creator, (1024, 1024), face);
