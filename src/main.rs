@@ -94,50 +94,6 @@ fn main() {
     }
 }
 
-// How to generate font atlas
-// --------------------------
-//
-//  A Store all the chars in Unicode?
-//
-//    There are 150k chars in Unicode.
-//    At 20px, we get 400px per char approx.
-//    150,000 * 400 = 60,000,000
-//    Roughly 2000x2000px atlas.
-//
-//    Won't work well for higher font sizes as we are already at the texture size limit.
-//    Could split into multiple textues.
-//
-//  B For every document, get all the characters in the document
-//    and generate the atlas.
-//
-//    Will have to regenerate the atlas for every text document.
-//    Size of the atlas will be smaller.
-//
-//  C As we process the document, cache the glyph bitmap for every (glyph, font-size)
-//
-//    Check if (char, font-size) is in cache.
-//    If yes, use that
-//    else call freetype to draw it and put it in cache
-//
-
-// How to scroll
-// -------------
-//
-//  A Generate the whole page at once as a texture
-//
-//    Could hit the texture size limit very easily.
-//
-//  B Generate the whole page at once, but split into multiple textures
-//
-//    High memory usage.
-//    Simpler to implement.
-//
-//  C Generate 3 pages (prev, current, next)
-//
-//    When scroll down 0.5 page, (prev = current, current = next, next = render())
-//    Will cause more redraws than previous, but memory efficient.
-//
-
 #[derive(Hash, Eq, PartialEq)]
 struct Glyph {
     font_size: usize,
