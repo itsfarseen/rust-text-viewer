@@ -20,6 +20,7 @@ fn main() {
     let window = video
         .window("Text Viewer", 1200, 600)
         .position_centered()
+        .resizable()
         .build()
         .unwrap();
 
