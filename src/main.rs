@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, time::SystemTime};
+use std::time::SystemTime;
 
 use sdl2::{
     event::Event, keyboard::Keycode, mouse::MouseWheelDirection, pixels::Color, rect::Rect,
@@ -39,10 +39,7 @@ fn main() {
     let mut last_time = SystemTime::now();
     let mut frame = 0.0;
     let mut scroll_velocity = 0;
-    let t = SystemTime::now();
     'running: loop {
-        let dt = t.elapsed().unwrap().as_millis() as u64;
-
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
 
