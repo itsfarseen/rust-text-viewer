@@ -70,7 +70,7 @@ fn main() {
         }
 
         text_doc.scroll(scroll_velocity as _);
-        scroll_velocity = scroll_velocity * 99 / 100;
+        scroll_velocity = scroll_velocity * 999 / 1000;
 
         frame += 1.0;
         let elapsed = last_time.elapsed().unwrap();
