@@ -127,7 +127,13 @@ impl TextDoc {
         let line_height = texture_atlas.line_height() as i64;
         let (mut x, mut y) = (0, line_height + self.scroll_offset);
 
-        for c in self.text.chars() {
+        let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
+            self.text[3..].chars()
+        } else {
+            self.text.chars()
+        };
+
+        for c in chars {
             let glyph_info = texture_atlas.get(c, 40).unwrap();
             let metrics = glyph_info.metrics;
 
