@@ -134,6 +134,10 @@ struct BitmapRGBA8888 {
     pitch: u32,
 }
 
+fn gamma(p: u8) -> u8 {
+    (((p as f64) / 255.0).powf(0.5) * 255.0) as u8
+}
+
 impl BitmapRGBA8888 {
     pub fn new(bitmap: &Bitmap) -> Self {
         let width = (bitmap.width() as u32).max(1);
@@ -195,6 +199,7 @@ impl BitmapRGBA8888 {
                 while (i as usize) < bitmap.buffer().len() {
                     for x in 0..bitmap.width() {
                         let p = bitmap.buffer()[(i + x) as usize];
+                        let p = gamma(p);
                         let color_rgba = (p, p, p, p);
                         draw(x as _, y, color_rgba);
                     }
