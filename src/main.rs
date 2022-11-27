@@ -1,8 +1,13 @@
 use std::time::SystemTime;
 
 use sdl2::{
-    event::Event, keyboard::Keycode, mouse::MouseWheelDirection, pixels::Color, rect::Rect,
-    render::Canvas, video::Window,
+    event::Event,
+    keyboard::Keycode,
+    mouse::MouseWheelDirection,
+    pixels::Color,
+    rect::{Point, Rect},
+    render::Canvas,
+    video::Window,
 };
 
 use freetype as ft;
@@ -146,6 +151,14 @@ impl TextDoc {
 
         let (mut x, mut y) = (x_start, ascender + self.scroll_offset + self.padding);
 
+        canvas.set_draw_color(Color::RGB(0x33, 0x33, 0x33));
+        canvas
+            .draw_line(
+                Point::new(x_start as _, y as _),
+                Point::new((x_start + width) as _, y as _),
+            )
+            .unwrap();
+
         let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
             self.text[3..].chars()
         } else {
@@ -159,6 +172,13 @@ impl TextDoc {
             if c == '\n' || x + (metrics.horiAdvance / 64) > width as i64 {
                 x = x_start;
                 y += line_height;
+                canvas.set_draw_color(Color::RGB(0x33, 0x33, 0x33));
+                canvas
+                    .draw_line(
+                        Point::new(x_start as _, y as _),
+                        Point::new((x_start + width) as _, y as _),
+                    )
+                    .unwrap();
             };
 
             if c == '\n' || c == '\r' {
