@@ -77,6 +77,10 @@ fn main() {
                     y *= 20;
                     scroll_velocity = y;
                 }
+                Event::FingerMotion { mut dy, .. } => {
+                    dy *= 500.0;
+                    scroll_velocity = dy as _;
+                }
                 _ => {}
             }
         }
