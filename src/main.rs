@@ -48,7 +48,7 @@ fn main() {
     let texture_creator = canvas.texture_creator();
     let mut texture_atlas = TextureAtlas::new(&texture_creator, (1024, 1024), face);
 
-    let mut text_doc = TextDoc::new(TEXT.to_owned());
+    let mut text_doc = TextDoc::new(TEXT.to_owned(), 40);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut last_time = SystemTime::now();
@@ -105,28 +105,39 @@ mod texture_atlas;
 
 struct TextDoc {
     text: String,
+    padding: i64,
     scroll_offset: i64,
+    max_scroll_offset: i64,
 }
 
 impl TextDoc {
-    fn new(text: String) -> TextDoc {
+    fn new(text: String, padding: i64) -> TextDoc {
         TextDoc {
             text,
+            padding,
             scroll_offset: 0,
+            max_scroll_offset: i64::MAX,
         }
     }
 
     fn scroll(&mut self, amt: i64) {
-        self.scroll_offset += amt;
+        if -(self.scroll_offset + amt) >= 0
+            && -(self.scroll_offset + amt) <= self.max_scroll_offset.saturating_add(self.padding)
+        {
+            self.scroll_offset += amt;
+        }
     }
 
-    fn render(&self, texture_atlas: &mut TextureAtlas, canvas: &mut Canvas<Window>) {
+    fn render(&mut self, texture_atlas: &mut TextureAtlas, canvas: &mut Canvas<Window>) {
         let (width, height) = canvas.output_size().unwrap();
         let width = width as i64;
         let height = height as i64;
 
-        let line_height = texture_atlas.line_height() as i64;
-        let (mut x, mut y) = (0, line_height + self.scroll_offset);
+        let x_start = self.padding;
+        let width = width - 2 * self.padding;
+
+        let line_height = texture_atlas.line_height(40) as i64;
+        let (mut x, mut y) = (x_start, line_height + self.scroll_offset + self.padding);
 
         let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
             self.text[3..].chars()
@@ -134,24 +145,26 @@ impl TextDoc {
             self.text.chars()
         };
 
+        let mut overflow = false;
         for c in chars {
             let glyph_info = texture_atlas.get(c, 40).unwrap();
             let metrics = glyph_info.metrics;
 
             if c == '\n' || x + (metrics.horiAdvance / 64) > width as i64 {
-                x = 0;
+                x = x_start;
                 y += line_height;
             };
 
-            if c == '\n' {
+            if c == '\n' || c == '\r' {
                 continue;
             }
 
-            if y - line_height > height {
+            if y > height + line_height {
+                overflow = true;
                 break;
             }
 
-            if y >= -line_height {
+            if y + line_height >= 0 {
                 let src = Rect::new(
                     glyph_info.x as _,
                     glyph_info.y as _,
@@ -170,6 +183,10 @@ impl TextDoc {
             }
 
             x += metrics.horiAdvance / 64;
+        }
+
+        if !overflow {
+            self.max_scroll_offset = -self.scroll_offset;
         }
     }
 }
