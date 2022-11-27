@@ -63,7 +63,10 @@ impl<'r> TextureAtlas<'r> {
         &self.texture
     }
 
-    pub fn line_height(&self) -> i64 {
+    pub fn line_height(&self, font_size: u32) -> i64 {
+        self.face
+            .set_char_size((font_size * 64) as isize, 0, 50, 0)
+            .unwrap();
         self.face.size_metrics().unwrap().height / 64
     }
 
