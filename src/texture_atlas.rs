@@ -25,6 +25,7 @@ pub struct GlyphInfo {
     pub height: u32,
     pub metrics: FT_Glyph_Metrics,
 }
+
 pub struct TextureAtlas<'r> {
     texture: Texture<'r>,
     size: (u32, u32),
@@ -32,6 +33,12 @@ pub struct TextureAtlas<'r> {
     max_height: u32,
     glyphs: HashMap<Glyph, GlyphInfo>,
     face: Face,
+}
+
+pub struct FontMetrics {
+    pub line_height: i64,
+    pub ascender: i64,
+    pub descender: i64,
 }
 
 impl<'r> TextureAtlas<'r> {
@@ -63,11 +70,17 @@ impl<'r> TextureAtlas<'r> {
         &self.texture
     }
 
-    pub fn line_height(&self, font_size: u32) -> i64 {
+    pub fn font_metrics(&self, font_size: u32) -> FontMetrics {
         self.face
             .set_char_size((font_size * 64) as isize, 0, 50, 0)
             .unwrap();
-        self.face.size_metrics().unwrap().height / 64
+        let ft_metrics = self.face.size_metrics().unwrap();
+        let metrics = FontMetrics {
+            line_height: ft_metrics.height / 64,
+            ascender: ft_metrics.ascender / 64,
+            descender: ft_metrics.descender / 64,
+        };
+        metrics
     }
 
     pub fn get(&mut self, char: char, font_size: u32) -> Option<GlyphInfo> {

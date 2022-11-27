@@ -139,8 +139,12 @@ impl TextDoc {
         let x_start = self.padding;
         let width = width - 2 * self.padding;
 
-        let line_height = texture_atlas.line_height(40) as i64;
-        let (mut x, mut y) = (x_start, line_height + self.scroll_offset + self.padding);
+        let font_metrics = texture_atlas.font_metrics(40);
+        let line_height = font_metrics.line_height;
+        let ascender = font_metrics.ascender;
+        let descender = font_metrics.descender;
+
+        let (mut x, mut y) = (x_start, ascender + self.scroll_offset + self.padding);
 
         let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
             self.text[3..].chars()
@@ -186,7 +190,7 @@ impl TextDoc {
             x += metrics.horiAdvance / 64;
         }
 
-        if y + line_height + self.padding < height {
+        if y + descender + self.padding < height {
             self.max_scroll_offset = -self.scroll_offset;
         }
     }
