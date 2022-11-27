@@ -121,8 +121,7 @@ impl TextDoc {
     }
 
     fn scroll(&mut self, amt: i64) {
-        if -(self.scroll_offset + amt) >= 0
-            && -(self.scroll_offset + amt) <= self.max_scroll_offset.saturating_add(self.padding)
+        if -(self.scroll_offset + amt) >= 0 && -(self.scroll_offset + amt) <= self.max_scroll_offset
         {
             self.scroll_offset += amt;
         }
@@ -145,7 +144,6 @@ impl TextDoc {
             self.text.chars()
         };
 
-        let mut overflow = false;
         for c in chars {
             let glyph_info = texture_atlas.get(c, 40).unwrap();
             let metrics = glyph_info.metrics;
@@ -160,7 +158,6 @@ impl TextDoc {
             }
 
             if y > height + line_height {
-                overflow = true;
                 break;
             }
 
@@ -185,7 +182,7 @@ impl TextDoc {
             x += metrics.horiAdvance / 64;
         }
 
-        if !overflow {
+        if y + line_height + self.padding < height {
             self.max_scroll_offset = -self.scroll_offset;
         }
     }
