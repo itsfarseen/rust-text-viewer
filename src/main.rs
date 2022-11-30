@@ -11,7 +11,8 @@ use texture_atlas::TextureAtlas;
 
 const FONT_PATH: [&str; 3] = [
     "/usr/share/fonts/TTF/OpenSans-Light.ttf",
-     "/nix/store/rqs3nbgwi83a1bv3swxy4jjbg5aibfyc-iosevka-15.6.3/share/fonts/truetype/iosevka-regular.ttf",    "/usr/share/fonts/TTF/iosevka-regular.ttc",
+    "/nix/store/rqs3nbgwi83a1bv3swxy4jjbg5aibfyc-iosevka-15.6.3/share/fonts/truetype/iosevka-regular.ttf",
+    "/usr/share/fonts/TTF/iosevka-regular.ttc",
 ];
 
 const TEXT: &str = include_str!("../small.txt");
