@@ -12,6 +12,7 @@ pub struct TextDoc {
     padding: i64,
     scroll_offset: i64,
     max_scroll_offset: i64,
+    line_starts: Vec<usize>,
 }
 
 impl TextDoc {
@@ -21,6 +22,7 @@ impl TextDoc {
             padding,
             scroll_offset: 0,
             max_scroll_offset: i64::MAX,
+            line_starts: vec![0],
         }
     }
 
@@ -54,19 +56,33 @@ impl TextDoc {
             )
             .unwrap();
 
+        let mut line_no = ((-self.scroll_offset - self.padding - ascender).max(0) as f64
+            / line_height as f64)
+            .floor() as usize;
+
+        let chars_start_index = *self.line_starts.get(line_no).unwrap_or(&0);
+
         let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
-            self.text[3..].chars()
+            self.text[(3 + chars_start_index)..].chars()
         } else {
-            self.text.chars()
+            self.text[chars_start_index..].chars()
         };
 
-        for c in chars {
+        for (i, c) in chars.enumerate() {
             let glyph_info = texture_atlas.get(c, 40).unwrap();
             let metrics = glyph_info.metrics;
 
             if c == '\n' || x + (metrics.horiAdvance / 64) > width as i64 {
                 x = x_start;
                 y += line_height;
+                line_no += 1;
+
+                if self.line_starts.len() == line_no {
+                    self.line_starts.push(i);
+                } else if self.line_starts.len() < line_no {
+                    unreachable!();
+                }
+
                 canvas.set_draw_color(Color::RGB(0x33, 0x33, 0x33));
                 canvas
                     .draw_line(

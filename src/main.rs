@@ -69,6 +69,18 @@ fn main() {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::KeyUp {
+                    keycode: Some(Keycode::Up),
+                    ..
+                } => {
+                    scroll_velocity = 1;
+                }
+                Event::KeyUp {
+                    keycode: Some(Keycode::Down),
+                    ..
+                } => {
+                    scroll_velocity = -1;
+                }
                 Event::MouseWheel {
                     mut y, direction, ..
                 } => {
