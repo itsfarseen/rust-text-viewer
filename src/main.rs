@@ -15,7 +15,7 @@ const FONT_PATH: [&str; 3] = [
     "/usr/share/fonts/TTF/iosevka-regular.ttc",
 ];
 
-const TEXT: &str = include_str!("../small.txt");
+const TEXT: &str = include_str!("../full.txt");
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -62,7 +62,7 @@ fn main() {
 
         text_doc.render(&mut texture_atlas, &mut canvas);
         canvas.present();
-        let event = event_pump.wait_event_timeout(1_000u32 / 120);
+        let event = event_pump.wait_event_timeout(1);
         if let Some(event) = event {
             match event {
                 Event::Quit { .. }
@@ -74,13 +74,13 @@ fn main() {
                     keycode: Some(Keycode::Up),
                     ..
                 } => {
-                    scroll_velocity = 1;
+                    scroll_velocity = -1;
                 }
                 Event::KeyUp {
                     keycode: Some(Keycode::Down),
                     ..
                 } => {
-                    scroll_velocity = -1;
+                    scroll_velocity = 1;
                 }
                 Event::MouseWheel {
                     mut y, direction, ..
@@ -89,11 +89,11 @@ fn main() {
                         y = -y;
                     }
                     y *= 20;
-                    scroll_velocity = y;
+                    scroll_velocity = -y;
                 }
                 Event::FingerMotion { mut dy, .. } => {
                     dy *= 500.0;
-                    scroll_velocity = dy as _;
+                    scroll_velocity = -dy as _;
                 }
                 _ => {}
             }

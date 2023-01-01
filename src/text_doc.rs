@@ -27,8 +27,7 @@ impl TextDoc {
     }
 
     pub fn scroll(&mut self, amt: i64) {
-        if -(self.scroll_offset + amt) >= 0 && -(self.scroll_offset + amt) <= self.max_scroll_offset
-        {
+        if (self.scroll_offset + amt) >= 0 && (self.scroll_offset + amt) <= self.max_scroll_offset {
             self.scroll_offset += amt;
         }
     }
@@ -39,60 +38,63 @@ impl TextDoc {
         let height = height as i64;
 
         let x_start = self.padding;
-        let width = width - 2 * self.padding;
+        let x_end = width - self.padding;
 
         let font_metrics = texture_atlas.font_metrics(40);
         let line_height = font_metrics.line_height;
         let ascender = font_metrics.ascender;
         let descender = font_metrics.descender;
 
-        let (mut x, mut y) = (x_start, ascender + self.scroll_offset + self.padding);
-
-        canvas.set_draw_color(Color::RGB(0x33, 0x33, 0x33));
-        canvas
-            .draw_line(
-                Point::new(x_start as _, y as _),
-                Point::new((x_start + width) as _, y as _),
-            )
-            .unwrap();
-
-        let mut line_no = ((-self.scroll_offset - self.padding - ascender).max(0) as f64
-            / line_height as f64)
-            .floor() as usize;
-
-        let chars_start_index = *self.line_starts.get(line_no).unwrap_or(&0);
-
-        let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
-            self.text[(3 + chars_start_index)..].chars()
+        let mut line_no = if self.scroll_offset <= self.padding + ascender + line_height {
+            0
         } else {
-            self.text[chars_start_index..].chars()
+            1 + (self.scroll_offset - (self.padding + ascender + line_height)) / line_height
         };
 
-        for (i, c) in chars.enumerate() {
+        let y_start = if self.scroll_offset <= self.padding + ascender + line_height {
+            (self.padding + ascender + line_height) - self.scroll_offset
+        } else {
+            line_height
+                - ((self.scroll_offset - (self.padding + ascender + line_height)) % line_height)
+        } - line_height;
+
+        let (mut x, mut y) = (x_start, y_start);
+
+        let line_color = Color::RGB(0x33, 0x33, 0x33);
+        draw_line(canvas, line_color, x_start, x_end, y);
+
+        let chars_start_index = *self.line_starts.get(line_no as usize).unwrap_or(&0);
+
+        let chars = if self.text[0..3].as_bytes() == [0xef, 0xbb, 0xbf] {
+            self.text[(3 + chars_start_index)..].char_indices()
+        } else {
+            self.text[chars_start_index..].char_indices()
+        };
+
+
+        for (i0, c) in chars {
+            let i = i0 + chars_start_index;
+
             let glyph_info = texture_atlas.get(c, 40).unwrap();
             let metrics = glyph_info.metrics;
 
-            if c == '\n' || x + (metrics.horiAdvance / 64) > width as i64 {
+            if c == '\n' || x + (metrics.horiAdvance / 64) > x_end {
                 x = x_start;
                 y += line_height;
                 line_no += 1;
 
-                if self.line_starts.len() == line_no {
-                    self.line_starts.push(i);
-                } else if self.line_starts.len() < line_no {
+                if self.line_starts.len() == line_no as usize {
+                    self.line_starts.push(i + 1);
+                } else if self.line_starts.len() < line_no as usize {
                     unreachable!();
                 }
 
-                canvas.set_draw_color(Color::RGB(0x33, 0x33, 0x33));
-                canvas
-                    .draw_line(
-                        Point::new(x_start as _, y as _),
-                        Point::new((x_start + width) as _, y as _),
-                    )
-                    .unwrap();
+                draw_line(canvas, line_color, x_start, x_end, y);
+
+                continue;
             };
 
-            if c == '\n' || c == '\r' {
+            if c == '\r' {
                 continue;
             }
 
@@ -122,7 +124,17 @@ impl TextDoc {
         }
 
         if y + descender + self.padding < height {
-            self.max_scroll_offset = -self.scroll_offset;
+            self.max_scroll_offset = self.scroll_offset;
         }
     }
+}
+
+fn draw_line(canvas: &mut Canvas<Window>, color: Color, x_start: i64, x_end: i64, y: i64) {
+    canvas.set_draw_color(color);
+    canvas
+        .draw_line(
+            Point::new(x_start as _, y as _),
+            Point::new(x_end as _, y as _),
+        )
+        .unwrap();
 }
